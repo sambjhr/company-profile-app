@@ -1,59 +1,47 @@
-// src/app/blog/[id]/page.tsx
-import Image from 'next/image'
 import { backendlessFetch } from '@/lib/backendless'
-import React from 'react'
+import Image from 'next/image'
 
-type Post = {
-  objectId: string
-  Title: string
-  Body?: string
-  CoverImage?: string
-  Author?: string
-  Category?: string
-  created?: string
-}
+export default async function BlogDetailPage({ params }: { params: { id: string } }) {
+  const id = params.id
 
-interface Props { params: { id: string } }
+  // Fetch aman untuk server (Vercel)
+  const result = await backendlessFetch('Posts', `where=objectId='${id}'&pageSize=1`).catch(() => null)
+  const post = Array.isArray(result) && result.length > 0 ? result[0] : null
 
-export default async function BlogDetail({ params }: Props) {
-  const { id } = params
-  // request single object by objectId => backendless data API supports /data/{table}/{objectId}
-  const urlTable = 'Posts'
-  // direct fetch via helper (we can call endpoint for specific id)
-  const endpoint = `${process.env.BACKENDLESS_API_BASE ?? 'https://api.backendless.com'}/${process.env.BACKENDLESS_APP_ID}/${process.env.BACKENDLESS_REST_API_KEY}/data/${urlTable}/${id}`
-
-  const res = await fetch(endpoint, { cache: 'no-store' })
-  if (!res.ok) {
+  if (!post) {
     return (
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-2xl font-bold">Post not found</h2>
-        </div>
-      </section>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-400">Post not found.</p>
+      </div>
     )
   }
-  const post: Post = await res.json()
-
-  const date = post.created ? new Date(post.created).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
-  const cover = post.CoverImage ?? '/image/default-post.jpg'
 
   return (
-    <article className="bg-gray-800 text-gray-100 min-h-screen py-20">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="mb-8">
-          {post.Category && <span className="inline-block bg-orange-400 text-white text-xs px-3 py-1 rounded-full">{post.Category}</span>}
-          <h1 className="text-3xl md:text-4xl font-extrabold mt-4">{post.Title}</h1>
-          <div className="text-sm text-gray-400 mt-2">{post.Author ? `By ${post.Author}` : ''} {date && ` • ${date}`}</div>
-        </div>
+    <div className="bg-white text-gray-800 min-h-screen py-20 px-6">
+      <div className="max-w-4xl mx-auto">
 
-        <div className="rounded-lg overflow-hidden mb-8">
-          <div className="relative w-full h-64">
-            <Image src={cover} alt={post.Title} fill className="object-cover" />
+        {post.CoverImage && (
+          <div className="w-full mb-8 rounded-lg overflow-hidden shadow">
+            <Image
+              src={post.CoverImage}
+              alt={post.Title}
+              width={1200}
+              height={600}
+              className="object-cover"
+            />
           </div>
+        )}
+
+        <h1 className="text-4xl font-bold mb-4">{post.Title}</h1>
+
+        <div className="text-gray-500 mb-6">
+          {post.Author && <span>By {post.Author}</span>}
         </div>
 
-        <div className="prose prose-invert max-w-none text-gray-200" dangerouslySetInnerHTML={{ __html: post.Body ?? '' }} />
+        <article className="prose prose-gray max-w-none">
+          <div dangerouslySetInnerHTML={{ __html: post.Body || '' }} />
+        </article>
       </div>
-    </article>
+    </div>
   )
 }

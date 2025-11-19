@@ -213,7 +213,7 @@ export default function CreateBlogPage() {
                     setBody('')
                     setFile(null)
                     setPreview(null)
-                    setCategory('RPA')
+                    setCategory('')
                     setError(null)
                     setSuccess(null)
                   }}

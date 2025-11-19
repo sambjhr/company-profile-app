@@ -3,20 +3,12 @@ export const BACKENDLESS_APP_ID = process.env.BACKENDLESS_APP_ID || ''
 export const BACKENDLESS_REST_API_KEY = process.env.BACKENDLESS_REST_API_KEY || ''
 export const BACKENDLESS_BASE = process.env.BACKENDLESS_API_BASE || 'https://api.backendless.com'
 
-/**
- * Helper: apakah server-side credentials tersedia?
- */
 export function hasServerCredentials(): boolean {
   return Boolean(BACKENDLESS_APP_ID && BACKENDLESS_REST_API_KEY)
 }
 
-/**
- * Generic fetch wrapper to Backendless Data API.
- * Returns null when server credentials missing (caller must handle fallback).
- */
 export async function backendlessFetch<T = any>(tableName: string, query = ''): Promise<T | null> {
   if (!hasServerCredentials()) {
-    // safe fallback during build/preview/no-env — do NOT throw here
     console.warn('backendlessFetch: missing BACKENDLESS_APP_ID / BACKENDLESS_REST_API_KEY. Returning null.')
     return null
   }

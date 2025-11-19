@@ -1,4 +1,3 @@
-// src/lib/backendless.ts
 export const BACKENDLESS_APP_ID = process.env.BACKENDLESS_APP_ID || ''
 export const BACKENDLESS_REST_API_KEY = process.env.BACKENDLESS_REST_API_KEY || ''
 export const BACKENDLESS_BASE = process.env.BACKENDLESS_API_BASE || 'https://api.backendless.com'

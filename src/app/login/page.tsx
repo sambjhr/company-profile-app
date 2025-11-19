@@ -1,4 +1,3 @@
-// src/app/login/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -15,10 +14,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [backendlessReady, setBackendlessReady] = useState<boolean>(false)
 
-  /**
-   * INIT BACKENDLESS CLIENT-SIDE
-   * memastikan init benar-benar selesai sebelum user login
-   */
   useEffect(() => {
     initBackendlessClient()
       .then(() => setBackendlessReady(isBackendlessInited()))
@@ -45,14 +40,12 @@ export default function LoginPage() {
     try {
       const user = await Backendless.UserService.login(email, password, true)
 
-      // simpan session
       localStorage.setItem('loggedIn', 'true')
       localStorage.setItem('backendlessUser', JSON.stringify(user))
       if ((user as any).userToken) {
         localStorage.setItem('backendlessUserToken', (user as any).userToken)
       }
 
-      // notify navbar
       window.dispatchEvent(new Event('authChanged'))
 
       router.push('/')

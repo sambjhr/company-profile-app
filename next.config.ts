@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+import { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  reactStrictMode: true,
+  images: {
+    domains: ['backendlessappcontent.com', 'api.backendless.com'],
+  },
+}
 
-export default nextConfig;
+export default nextConfig

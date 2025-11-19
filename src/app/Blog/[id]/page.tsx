@@ -44,4 +44,4 @@ export default async function BlogDetailPage({ params }: { params: { id: string 
       </div>
     </div>
   )
-}
+};

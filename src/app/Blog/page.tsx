@@ -2,7 +2,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { backendlessFetch } from '@/lib/backendless'
-import React from 'react'
 
 type Post = {
   objectId: string
@@ -18,11 +17,8 @@ type Post = {
 export default async function BlogPage() {
   // fetch posts from Backendless "Posts" table (adjust table name if beda)
   // sort by created desc; pageSize set to 12
-  const query = 'sortBy=created%20DESC&pageSize=12'
-  const posts: Post[] = await backendlessFetch<Post[]>('Posts', query).catch((err) => {
-    console.error(err)
-    return []
-  })
+const result = await backendlessFetch<Post[]>('Posts', 'sortBy=created%20DESC&pageSize=12').catch(() => null)
+const posts = Array.isArray(result) ? result : []
 
   return (
     <section className="bg-white text-gray-800 py-20 min-h-screen">

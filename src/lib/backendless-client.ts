@@ -1,40 +1,53 @@
 type AnyObj = Record<string, any>
 
 let _Backendless: AnyObj | null = null
+let _initPromise: Promise<void> | null = null
 
 export function isBackendlessInited(): boolean {
-  return Boolean(_Backendless && _Backendless._inited)
+  return Boolean(_Backendless && (_Backendless as any)._inited)
 }
 
 export async function initBackendlessClient(): Promise<void> {
-  // only run on client
+  // only run in browser
   if (typeof window === 'undefined') return
 
   if (isBackendlessInited()) return
 
-  const appId = process.env.NEXT_PUBLIC_BACKENDLESS_APP_ID
-  const jsKey = process.env.NEXT_PUBLIC_BACKENDLESS_JS_KEY
+  if (_initPromise) return _initPromise
 
-  if (!appId || !jsKey) {
-    // Keep behavior predictable: throw so callers can show friendly message.
-    throw new Error('Missing NEXT_PUBLIC_BACKENDLESS_APP_ID or NEXT_PUBLIC_BACKENDLESS_JS_KEY')
-  }
+  _initPromise = (async () => {
+    const appId = process.env.NEXT_PUBLIC_BACKENDLESS_APP_ID
+    const jsKey = process.env.NEXT_PUBLIC_BACKENDLESS_JS_KEY
 
-  // dynamic import to avoid TypeScript compile-time type checks about initApp
-  const mod = await import('backendless')
-  const BackendlessLib = (mod as any).default ?? mod
+    if (!appId || !jsKey) {
+      // reset init promise so caller can try again later
+      _initPromise = null
+      throw new Error('Missing NEXT_PUBLIC_BACKENDLESS_APP_ID or NEXT_PUBLIC_BACKENDLESS_JS_KEY')
+    }
 
-  // cast to any to avoid TS complaining about initApp not in type defs
-  ;(BackendlessLib as any).initApp(appId, jsKey)
-  ;(BackendlessLib as any)._inited = true
+    // dynamic import so server build won't try to resolve "backendless"
+    const mod = await import('backendless')
+    const BackendlessLib = (mod as any).default ?? mod
 
-  // store reference
-  _Backendless = BackendlessLib as AnyObj
+    // use `any` to avoid TS complaints about missing types for initApp
+    ;(BackendlessLib as any).initApp(appId, jsKey)
+    ;(BackendlessLib as any)._inited = true
 
-  // attach to window for easier debugging (optional)
+    _Backendless = BackendlessLib as AnyObj
+
+    // optional: attach to window for debug
+    try {
+      ;(window as any).__Backendless = _Backendless
+    } catch {}
+  })()
+
   try {
-    ;(window as any).__Backendless = _Backendless
-  } catch {}
+    await _initPromise
+  } catch (err) {
+    // reset so future attempts can try again
+    _initPromise = null
+    throw err
+  }
 }
 
 const handler: ProxyHandler<AnyObj> = {
